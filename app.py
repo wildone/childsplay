@@ -6,18 +6,33 @@ import tkinter.font as font
 import random
 from evdev import InputDevice, categorize, ecodes
 
-from pydub import AudioSegment
-from pydub.utils import make_chunks
-from pyaudio import PyAudio
 from threading import Thread
+import os
+import subprocess
+
+import multiprocessing as mp
+import collections
+
+Msg = collections.namedtuple('Msg', ['text'])
+
+from omxplayer.player import OMXPlayer #runs from the popcornmix omxplayer wrapper at https://github.com/popcornmix/omxplayerhttps://github.com/popcornmix/omxplayer and https://python-omxplayer-wrapper.readthedocs.io/en/latest/)
+from pathlib import Path
+import logging
+logging.basicConfig(level=logging.INFO)
+
+timeout = 10000
+
+playSong = True
+sayThings = True
 
 after_id = None
 song = None
+talk = None
 #set num lock
 dev = InputDevice('/dev/input/event0') # your keyboard device
 dev.set_led(ecodes.LED_NUML, 1)
 
-MUSIC = ['Mozart - Pachebel - Canon In D Minor.mp3']
+MUSIC = ['song.mp3']
 
 COLORS = ['snow', 'ghost white', 'white smoke', 'gainsboro', 'floral white', 'old lace',
     'linen', 'antique white', 'papaya whip', 'blanched almond', 'bisque', 'peach puff',
@@ -97,7 +112,9 @@ def session_end():
     label.config(bg='black')
     label.config(fg="white")
     labelText.set("Hello Arkadi!")
-    #song.stop()
+    if playSong:
+        song.pause()
+
 
 def right(s, amount):
     return s[-amount:]
@@ -106,17 +123,21 @@ def keypress(event):
     global after_id
     if after_id is not None:
         root.after_cancel(after_id)
-    after_id = root.after(5000, session_end)
+
+    after_id = root.after(10000, session_end)
 
     label.config(fg="black")
 
-    #labelText.set(right(labelText.get()+' '+event.keysym.upper(),25))
     labelText.set(event.keysym.upper())
     label.config(bg=random.choice(COLORS))
-    #event.widget.depositLabel['text'] = event.char
-    #print "pressed", repr(event.char)
 
-    song.pause()
+    if playSong:
+        song.play()
+
+    if sayThings:
+        talk.say(event.char)
+
+
 
 
 def labelprep(event):
@@ -149,14 +170,6 @@ class FullScreenApp(object):
 
         label.pack(expand=YES, fill=BOTH)
 
-        #label.bind('<Button-1>', labelprep)
-        #w.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-
-        #song = Song("Mozart - Pachebel - Canon In D Minor.mp3")
-
-        #b = tk.Button(self.master, text="Press me!", command=lambda: self.pressed())
-        #b.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
     def pressed(self):
         print("clicked!")
@@ -168,40 +181,79 @@ class FullScreenApp(object):
 class Song(Thread):
 
     def __init__(self, f, *args, **kwargs):
-        self.seg = AudioSegment.from_file(f)
-        self.__is_paused = True
-        self.p = PyAudio()
-        #print self.seg.frame_rate
+        self.__file = f
+        self.__player = None
         Thread.__init__(self, *args, **kwargs)
         self.start()
 
     def pause(self):
-        self.__is_paused = True
+        if self.__player is not None:
+            self.__player.pause()
+
+    def stop(self):
+        if self.__player is not None:
+            self.__player.pause()
+
+    def set_position(self, set_position):
+        if self.__player is not None:
+            self.__player.set_position(set_position)
 
     def play(self):
-        self.__is_paused = False
-
-    def __get_stream(self):
-        return self.p.open(format=self.p.get_format_from_width(self.seg.sample_width),
-                           channels=self.seg.channels,
-                           rate=self.seg.frame_rate,
-                           output=True)
+        if self.__player is not None:
+            self.__player.play()
 
     def run(self):
-        stream = self.__get_stream()
-        chunk_count = 0
-        chunks = make_chunks(self.seg, 100)
-        while chunk_count <= len(chunks):
-            if not self.__is_paused:
-                data = (chunks[chunk_count])._data
-                chunk_count += 1
-            else:
-                free = stream.get_write_available()
-                data = chr(0)*free
-            stream.write(data)
+        print("Song: Init")
+        if self.__file is not None:
+            self.__file_path = Path(self.__file)
+            self.__player = OMXPlayer(self.__file_path, args='--loop')
+            self.pause()
+            self.set_position(0)
+        print("Song: Ready")
 
-        stream.stop_stream()
-        self.p.terminate()
+
+class Talk(Thread):
+
+    def __init__(self, f, *args, **kwargs):
+        self.queue = mp.Queue()
+        self.max = 3
+        self.count = 0
+        self.__text = f
+        self.__is_ready = True
+        self.__is_busy = False
+        Thread.__init__(self, *args, **kwargs)
+        self.start()
+
+    def say(self, text):
+        if text is not "":
+            msg = Msg(text)
+            if self.count < self.max:
+                print("Talk: Add to queue " + msg.text)
+                self.queue.put(msg)
+                self.count += 1
+            if self.count >= self.max:
+                print("Queue is full")
+
+
+    def dispatch(self, msg):
+        text = msg.text
+
+        print("Talk: Saying [" + text + "]")
+        os.system("espeak \"{text}\" --stdout | aplay --device=hw:1,0".format(text = text))
+        print("Talk: Done Saying [" + text + "]")
+        self.count -= 1
+
+
+
+    def run(self):
+        print("Talk: Init")
+        while True:
+            msg = self.queue.get()
+
+            print("Talk: Get from queue " + msg.text)
+            self.dispatch(msg)
+
+
 
 
 root=tk.Tk()
@@ -209,17 +261,18 @@ root.wm_attributes('-fullscreen','true')
 
 root.protocol('WM_DELETE_WINDOW',donothing)
 
-#root.bind('<F3>', restart)
-#root.bind_all("<Key>",keypress)
 root.bind_all("<Any-KeyPress>", keypress)
 root.bind_all("<Any-ButtonPress>", keypress)
-#root.bind_all("<Alt_L-space>", keypress)
-
 
 labelText = StringVar()
 labelText.set("Hello Arkadi!")
 label = None
 
+if sayThings:
+    talk = Talk("")
+
+if playSong:
+    song = Song("./music/" + MUSIC[0])
 
 app=FullScreenApp(root)
 
