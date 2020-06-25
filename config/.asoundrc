@@ -1,0 +1,13 @@
+pcm.dmix_debug_auto {
+        type plug
+        slave.pcm "sysdefault"
+}
+
+pcm.dmix_debug_35mm {
+        type plug
+        slave.pcm "sysdefault"
+}
+pcm.!default {
+        type plug
+        slave.pcm "sysdefault"
+}
