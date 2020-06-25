@@ -55,6 +55,18 @@ I used following as the original idea [Original Idea](https://willhaley.com/blog
 
 #App
 
-app.py
+app.py - main app that will run full screen
 
+#Process
+
+1. Get your Pi setup
+2. info folder `/home/pi` copy
+    * app.py
+    * config folde
+    * music folder
+    * install.sh
+    * watch.sh
+3. run `./install.sh`
+4. create song.mp3 in `music` folder
+5. reboot
 
