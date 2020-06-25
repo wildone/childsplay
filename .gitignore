@@ -55,3 +55,5 @@ devops___*
 #stats files
 .stats
 .stats/*
+
+music/*.mp3
