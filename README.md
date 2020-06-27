@@ -62,19 +62,19 @@ app.py - main app that will run full screen
 This process will guide you from very start of setting up your PI to the final outcome. 
 
 1. Get your Pi setup - here we you will physically use the PI before you resume final config from remote a machine. 
-   1.1 Download the image
-   1.2 use the Raspberry Pi Imager to write the image to your SD card
-   1.3 First Boot login with `pi` user and default password `raspberry`
-   1.4 type `sudo raspi-config`
-   1.4.1 run `8. Update` to update Raspi-Config to latest version
-   1.4.2 go to `Advanced Options > Audio` and choose the audio output for your PI hardware setup, for me its Headphones.
-   1.4.3 go to `Interfacing Options > SSH` to enable SSH so that you can continue setup from remote.
-   1.4.4 exit and type `ifconfig` to see what IP you have so that you can connect from remote PC
+    * Download the image
+    * use the Raspberry Pi Imager to write the image to your SD card
+    * First Boot login with `pi` user and default password `raspberry`
+    * type `sudo raspi-config`
+        * run `8. Update` to update Raspi-Config to latest version
+        * go to `Advanced Options > Audio` and choose the audio output for your PI hardware setup, for me its Headphones.
+        * go to `Interfacing Options > SSH` to enable SSH so that you can continue setup from remote.
+        * exit and type `ifconfig` to see what IP you have so that you can connect from remote PC
 2. From your remote host
-    2.1 copy your ssh key to the pi using `ssh-copy-id pi@<YOUR PI IP>`
-    2.2 connect via SSH to your pi `ssh pi@<YOUR PI IP`
-    2.3 download all the content from this repo `curl -sSL https://github.com/wildone/childsplay/archive/master.zip > childsplay.zip && unzip -o childsplay.zip && rsync -arctuxz --remove-source-files  childsplay-master/* .`
-    2.4. run `bash ./install.sh`
+    * copy your ssh key to the pi using `ssh-copy-id pi@<YOUR PI IP>`
+    * connect via SSH to your pi `ssh pi@<YOUR PI IP`
+    * download all the content from this repo `curl -sSL https://github.com/wildone/childsplay/archive/master.zip > childsplay.zip && unzip -o childsplay.zip && rsync -arctuxz --remove-source-files  childsplay-master/* .`
+    * run `bash ./install.sh`
 3. create song.mp3 in `music` folder
 4. run `sudo service lightdm restart` or reboot
 
