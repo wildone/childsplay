@@ -74,7 +74,7 @@ This process will guide you from very start of setting up your PI to the final o
     2.1 copy your ssh key to the pi using `ssh-copy-id pi@<YOUR PI IP>`
     2.2 connect via SSH to your pi `ssh pi@<YOUR PI IP`
     2.3 download all the content from this repo `curl -sSL https://github.com/wildone/childsplay/archive/master.zip > childsplay.zip && unzip -o childsplay.zip && rsync -arctuxz --remove-source-files  childsplay-master/* .`
-    2.4. run `./install.sh`
+    2.4. run `bash ./install.sh`
 3. create song.mp3 in `music` folder
 4. run `sudo service lightdm restart` or reboot
 
@@ -98,3 +98,8 @@ To change list of songs update `MUSIC` list. Currently, only one song is used in
 MUSIC = ['song.mp3']
 ```
 
+## Dev Helpers
+
+You can run `bash upload.sh` on your dev box while you are updating `app.py` and it will be uploaded for you to your RPI, update your IP address for RPI in the script.  
+
+You can run `bash watch.sh` on RPI to monitor your updates to `app.py` while you are developing, this will restart LightDM for automatically.
