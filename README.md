@@ -66,7 +66,7 @@ This process will guide you from very start of setting up your PI to the final o
     * use the Raspberry Pi Imager to write the image to your SD card
     * First Boot login with `pi` user and default password `raspberry`
     * type `sudo raspi-config`
-        * run `8. Update` to update Raspi-Config to latest version
+        * run `Update` to update Raspi-Config to latest version
         * go to `Advanced Options > Audio` and choose the audio output for your PI hardware setup, for me its Headphones.
         * go to `Interfacing Options > SSH` to enable SSH so that you can continue setup from remote.
         * exit and type `ifconfig` to see what IP you have so that you can connect from remote PC
