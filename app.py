@@ -32,6 +32,9 @@ talk = None
 dev = InputDevice('/dev/input/event0') # your keyboard device
 dev.set_led(ecodes.LED_NUML, 1)
 
+APLAY_PARAMS = "--device=hw:1,0"
+NAME = "Arkadi"
+
 MUSIC = ['song.mp3']
 
 COLORS = ['snow', 'ghost white', 'white smoke', 'gainsboro', 'floral white', 'old lace',
@@ -111,7 +114,7 @@ def restart():
 def session_end():
     label.config(bg='black')
     label.config(fg="white")
-    labelText.set("Hello Arkadi!")
+    labelText.set("Hello {name}!".format(name = NAME))
     if playSong:
         song.pause()
 
@@ -239,7 +242,7 @@ class Talk(Thread):
         text = msg.text
 
         print("Talk: Saying [" + text + "]")
-        os.system("espeak \"{text}\" --stdout | aplay --device=hw:1,0".format(text = text))
+        os.system("espeak \"{text}\" --stdout | aplay {device}".format(text = text, device = APLAY_PARAMS))
         print("Talk: Done Saying [" + text + "]")
         self.count -= 1
 
@@ -272,7 +275,7 @@ if sayThings:
     talk = Talk("")
 
 if playSong:
-    song = Song("./music/" + MUSIC[0])
+    song = Song("./music/" + random.choice(MUSIC))
 
 app=FullScreenApp(root)
 
