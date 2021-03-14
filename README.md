@@ -103,3 +103,11 @@ MUSIC = ['song.mp3']
 You can run `bash upload.sh` on your dev box while you are updating `app.py` and it will be uploaded for you to your RPI, update your IP address for RPI in the script.  
 
 You can run `bash watch.sh` on RPI to monitor your updates to `app.py` while you are developing, this will restart LightDM for automatically.
+
+### On windows
+
+Update `host.address` with your ssh connection string.
+
+You can run `./connect.ps1` and a container will be created mapping your `~/.ssh` and connecting you to the host.
+
+You can run `./watch.ps1` and a container will be created mapping your `~/.ssh` and will watch `app.py` for updates and will copy then to your host.
