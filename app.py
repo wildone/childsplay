@@ -28,6 +28,10 @@ sayThings = True
 after_id = None
 song = None
 talk = None
+
+# input buffer of keys to speak once reste key is pressed
+inputBuffer = ""
+
 #set num lock
 dev = InputDevice('/dev/input/event0') # your keyboard device
 dev.set_led(ecodes.LED_NUML, 1)
@@ -124,22 +128,54 @@ def right(s, amount):
 
 def keypress(event):
     global after_id
+    global inputBuffer
     if after_id is not None:
         root.after_cancel(after_id)
 
-    after_id = root.after(10000, session_end)
+    after_id = root.after(timeout, session_end)
 
     label.config(fg="black")
 
-    labelText.set(event.keysym.upper())
-    label.config(bg=random.choice(COLORS))
+    inputResetKeys = [ 'Return',  'KP_Enter' ]
+
+    print("char: " + event.char + ", key: " + event.keysym + ", text: " + inputBuffer)
 
     if playSong:
         song.play()
 
-    if sayThings:
-        talk.say(event.char)
+    # if pressed key is in the list of keys to reset the input buffer
+    # then reset the input buffer
+    # else add the pressed key to the input buffer
+    if event.keysym in inputResetKeys:
+        if sayThings:
+            if inputBuffer != "":
+                talk.say(inputBuffer)
 
+        #inputBuffer = ""
+        # labelText.set("_")
+    else:
+        # inputBuffer.set( inputBuffer. event.char.upper()
+        if event.keysym == 'BackSpace':
+            inputBuffer = inputBuffer[:-1]
+        elif event.keysym == 'Delete' or event.keysym == 'KP_Delete' or event.keysym == 'Esc':
+            inputBuffer = ""
+        elif event.keysym == 'space':
+            inputBuffer += " "
+        # if event.keysym is normal character
+        elif event.char.isalpha():
+            inputBuffer += event.keysym.upper()
+        else:
+            inputBuffer += ""
+
+        # inputBuffer.set(inputBuffer.join(event.keysym.upper()))
+        # inputBuffer.set( inputBuffer.join(event.char.upper())
+
+    # output the input buffer to the label
+    # labelText.set("char: " + event.char + ", key: " + event.keysym + ", text: " + inputBuffer)
+    labelText.set(inputBuffer)
+
+    # change the label background color
+    label.config(bg=random.choice(COLORS))
 
 
 
@@ -190,11 +226,15 @@ class Song(Thread):
         self.start()
 
     def pause(self):
+        print("Song: Try Pause")
         if self.__player is not None:
+            print("Song: Pause")
             self.__player.pause()
 
     def stop(self):
+        print("Song: Try Stop")
         if self.__player is not None:
+            print("Song: Stop")
             self.__player.pause()
 
     def set_position(self, set_position):
@@ -202,12 +242,15 @@ class Song(Thread):
             self.__player.set_position(set_position)
 
     def play(self):
+        print("Song: Try Play")
         if self.__player is not None:
+            print("Song: Play")
             self.__player.play()
 
     def run(self):
-        print("Song: Init")
+        print("Song: Trt Init: " + self.__file)
         if self.__file is not None:
+            print("Song: Init")
             self.__file_path = Path(self.__file)
             self.__player = OMXPlayer(self.__file_path, args='--loop')
             self.pause()
@@ -239,11 +282,16 @@ class Talk(Thread):
 
 
     def dispatch(self, msg):
+        global inputBuffer
+        global labelText
         text = msg.text
 
         print("Talk: Saying [" + text + "]")
         os.system("espeak \"{text}\" --stdout | aplay {device}".format(text = text, device = APLAY_PARAMS))
         print("Talk: Done Saying [" + text + "]")
+        print("inputBuffer [" + inputBuffer + "]")
+        inputBuffer = ""
+        labelText.set(inputBuffer)
         self.count -= 1
 
 
@@ -268,7 +316,7 @@ root.bind_all("<Any-KeyPress>", keypress)
 root.bind_all("<Any-ButtonPress>", keypress)
 
 labelText = StringVar()
-labelText.set("Hello Arkadi!")
+labelText.set("Hello {name}!".format(name = NAME))
 label = None
 
 if sayThings:
@@ -280,3 +328,4 @@ if playSong:
 app=FullScreenApp(root)
 
 root.mainloop()
+
