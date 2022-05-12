@@ -33,7 +33,7 @@ dev = InputDevice('/dev/input/event0') # your keyboard device
 dev.set_led(ecodes.LED_NUML, 1)
 
 APLAY_PARAMS = "--device=hw:1,0"
-NAME = "Arkadi"
+NAME = "Arkadi and Lilah"
 
 MUSIC = ['song.mp3']
 
