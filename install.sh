@@ -1,3 +1,5 @@
+## Install file to automate the installation of the program
+#
 
 # enable non-free repos
 if [[ $(cat /etc/apt/sources.list.d/nonfree.list 2>/dev/null | grep "non-free rpi firmware") == "" ]]; then
@@ -7,7 +9,7 @@ EOF
 fi
 
 #install packages
-sudo apt-get update && \
+sudo apt-get update --allow-releaseinfo-change && \
 sudo apt-get install --no-install-recommends -y \
     sudo \
     cmake \
@@ -33,7 +35,7 @@ sudo apt-get install --no-install-recommends -y \
     alsa-tools \
     alsa-utils
 
-python3 -m pip install omxplayer-wrapper ffmpeg-python
+python3 -m pip install omxplayer-wrapper ffmpeg-python pynput
 
 #set headphone jack volume to 100%
 amixer -c 1 sset Headphone 100%
@@ -46,8 +48,8 @@ amixer -c 1 sset Headphone 100%
 #pcm.sysdefault cards.pcm.default
 #OR
 cat config/.asoundrc > ~/.asoundrc
-cat config/.alsa > /usr/share/alsa/alsa.conf
-if [[ $(cat /etc/environment 2>/dev/null | grep "export PA_ALSA_PLUGHW=1") == "" ]]; then
+sudo cat config/.alsa > /usr/share/alsa/alsa.conf
+if [[ $(sudo cat /etc/environment 2>/dev/null | grep "export PA_ALSA_PLUGHW=1") == "" ]]; then
 sudo bash -c 'echo "export PA_ALSA_PLUGHW=1">/etc/environment'
 fi
 

@@ -13,6 +13,9 @@ import subprocess
 import multiprocessing as mp
 import collections
 
+from pynput.mouse import Button, Controller
+mouse = Controller()
+
 Msg = collections.namedtuple('Msg', ['text'])
 
 from omxplayer.player import OMXPlayer #runs from the popcornmix omxplayer wrapper at https://github.com/popcornmix/omxplayerhttps://github.com/popcornmix/omxplayer and https://python-omxplayer-wrapper.readthedocs.io/en/latest/)
@@ -37,7 +40,7 @@ dev = InputDevice('/dev/input/event0') # your keyboard device
 dev.set_led(ecodes.LED_NUML, 1)
 
 APLAY_PARAMS = "--device=hw:1,0"
-NAME = "Arkadi and Lilah"
+NAME = "Arkadi, Lilah and Lev"
 
 MUSIC = ['song.mp3']
 
