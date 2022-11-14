@@ -1,6 +1,8 @@
 ## Install file to automate the installation of the program
 #
 
+echo "UPDATE SOURCES"
+
 # enable non-free repos
 if [[ $(cat /etc/apt/sources.list.d/nonfree.list 2>/dev/null | grep "non-free rpi firmware") == "" ]]; then
 cat << EOF | sudo tee /etc/apt/sources.list.d/nonfree.list
@@ -8,6 +10,7 @@ deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free r
 EOF
 fi
 
+echo "UPDATE PACKAGES"
 #install packages
 sudo apt-get update --allow-releaseinfo-change && \
 sudo apt-get install --no-install-recommends -y \
@@ -35,11 +38,17 @@ sudo apt-get install --no-install-recommends -y \
     alsa-tools \
     alsa-utils
 
+echo "UPDATE PYTHON PACKAGES"
+
 python3 -m pip install omxplayer-wrapper ffmpeg-python pynput
 
+echo "UPDATE SOURCES"
+
+echo "UPDATE HEADPHONE JACK VOLUME"
 #set headphone jack volume to 100%
 amixer -c 1 sset Headphone 100%
 
+echo "CONFIGURE ALSA"
 #configure alsa
 #update /usr/share/alsa/alsa.conf  with
 #defaults.ctl.card 1
@@ -53,9 +62,11 @@ if [[ $(sudo cat /etc/environment 2>/dev/null | grep "export PA_ALSA_PLUGHW=1") 
 sudo bash -c 'echo "export PA_ALSA_PLUGHW=1">/etc/environment'
 fi
 
+echo "DISABLE ALL SHORTCUTS IN LIGHTDM"
 #disable all shortcuts
 cp config/rc.xml ~/.config/openbox
 
+echo "ENABLE AUTO LOGIN"
 #enable auto login, only once
 if [[ $(cat /etc/lightdm/lightdm.conf 2>/dev/null | grep "autologin-user=pi") == "" ]]; then
 cat << EOF | sudo tee /etc/lightdm/lightdm.conf
@@ -66,7 +77,7 @@ xserver-command=X -s 0 dpms
 EOF
 fi
 
-
+echo "SETUP APP"
 #setup app, only once
 if [[ ! -d $HOME/.config/openbox ]]; then
     mkdir -p $HOME/.config/openbox
@@ -79,6 +90,10 @@ python3 -u $HOME/app.py > $HOME/app.log 2>&1 &
 EOF
 fi
 
+echo "TEST ESPEAK"
+
 #test
 espeak "hello" --stdout | aplay --device=hw:1,0
+
+echo "TEST OMXPLAYER"
 omxplayer /usr/share/sounds/speech-dispatcher/dummy-message.wav
